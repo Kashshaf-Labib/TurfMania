@@ -79,12 +79,18 @@ const Header = () => {
                 ))}
               </div>
               <div className="loginreg flex items-center justify-end gap-4">
-                <button className="bg-slate-50 text-[1.1rem] font-normal text-black px-5 py-1.5 rounded md:ml-6 sm:ml-0 ml-0">
+                <Link
+                  to="/login?action=login"
+                  className="bg-slate-50 text-[1.1rem] font-normal text-black px-5 py-1.5 rounded md:ml-6 sm:ml-0 ml-0"
+                >
                   Login
-                </button>
-                <button className="bg-green-800 hover:bg-green-900 text-[1.1rem] font-normal text-white px-5 py-1.5 rounded">
+                </Link>
+                <Link
+                  to="/signup?action=signup"
+                  className="bg-green-800 hover:bg-green-900 text-[1.1rem] font-normal text-white px-5 py-1.5 rounded"
+                >
                   Register
-                </button>
+                </Link>
               </div>
             </ul>
           </div>
