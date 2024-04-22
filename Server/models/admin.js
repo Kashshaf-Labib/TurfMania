@@ -1,7 +1,7 @@
 
 const mongoose = require("mongoose");
 
-const CustomerSchema = new mongoose.Schema({
+const TurfOwnerSchema = new mongoose.Schema({
   username: { type: String, unique: true }, // Enforce unique constraint for username field
   email: { type: String, unique: true }, // Enforce unique constraint for email field
   password: String,
@@ -10,6 +10,6 @@ const CustomerSchema = new mongoose.Schema({
   turfs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'turfs' }],
 });
 
-const CustomerModel = mongoose.model("customers", CustomerSchema);
+const TurfOnweModel = mongoose.model("turfOwners", TurfOwnerSchema);
 
-module.exports = CustomerModel;
+module.exports = TurfOnweModel;

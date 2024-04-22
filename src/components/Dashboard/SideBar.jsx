@@ -1,5 +1,5 @@
 'use client';
-
+import axios from 'axios'; // Import axios
 import { Sidebar } from 'flowbite-react';
 import { BiBuoy } from 'react-icons/bi';
 import {
@@ -12,10 +12,23 @@ import {
   HiUser,
   HiViewBoards,
 } from 'react-icons/hi';
+import { useNavigate } from 'react-router-dom';
 
-// Import CSS file for styling
+const AdminSidebar = () => {
+  const navigate = useNavigate(); // move useNavigate inside the function
 
-const SideBar = () => {
+  const handleLogout = async () => {
+    try {
+      const res = await axios.post('http://localhost:3001/user/auth/logout');
+      localStorage.removeItem('user');
+      navigate('/'); // use navigate here
+      return true; // return true if logout is successful
+    } catch (error) {
+      console.log(error);
+      return false; // return false if logout fails
+    }
+  };
+
   return (
     <Sidebar
       aria-label="Sidebar with content separator example"
@@ -50,7 +63,7 @@ const SideBar = () => {
           <Sidebar.Item href="/login" icon={HiArrowSmRight}>
             Sign In
           </Sidebar.Item>
-          <Sidebar.Item href="/logout" icon={HiTable}>
+          <Sidebar.Item icon={HiTable} onClick={handleLogout}>
             Sign Out
           </Sidebar.Item>
         </Sidebar.ItemGroup>
@@ -70,4 +83,4 @@ const SideBar = () => {
   );
 };
 
-export default SideBar;
+export default AdminSidebar;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import BookSingleTurf from './BookSingleTurf';
 import Header from './Header/Header';
 
 const SingleTurf = () => {
@@ -47,6 +48,7 @@ const SingleTurf = () => {
             Book Now
           </button>
         </div>
+        <BookSingleTurf />
       </div>
       <div className="mt-8 px-4 lg:px-24">
         <iframe

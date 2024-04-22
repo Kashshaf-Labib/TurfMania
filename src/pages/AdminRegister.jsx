@@ -1,53 +1,58 @@
 import axios from 'axios';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Importing useNavigate instead of Redirect
 import '../LoginSignup.css';
 import email_icon from '../assets/email.png';
 import password_icon from '../assets/password.png';
+import user_icon from '../assets/person.png';
 
-function Login() {
-  const [error, setError] = useState('');
+function AdminRegister() {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Using useNavigate hook
 
-  const handleSubmit = async e => {
+  function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true); // Set loading state to true when form is submitted
-    try {
-      console.log('Sending request:', { username, password }); // Debugging: Log the request body
-      const res = await axios.post('http://localhost:3001/user/auth/login', {
+    axios
+      .post('http://localhost:3001/owner/auth/register', {
         username,
+        email,
         password,
-      });
-      setLoading(false); // Set loading state to false after API call
-      console.log('Response:', res.data); // Debugging: Log the response data
-      localStorage.setItem('user', JSON.stringify(res.data));
-      navigate('/');
-    } catch (err) {
-      setLoading(false); // Set loading state to false if API call fails
-      setError(err.response.data.message);
-    }
-  };
+      })
+      .then(result => {
+        console.log(result);
+        navigate('/ownerlogin'); // Navigate to login page after successful signup
+      })
+      .catch(err => console.log(err));
+  }
 
   return (
     <div className="bodyContainer">
       <div className="loginSignupcontainer">
         <div className="header">
-          <div className="text">Login</div>
+          <div className="text">Sign Up</div>
           <div className="underline"></div>
         </div>
         <div className="formContainer">
           <form onSubmit={handleSubmit}>
             <div className="inputs">
               <div className="input">
+                <img src={user_icon} alt="user_icon" />
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                />
+              </div>
+              <div className="input">
                 <img src={email_icon} alt="email_icon" />
                 <input
                   type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
+                  placeholder="text"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                 />
               </div>
               <div className="input">
@@ -61,11 +66,10 @@ function Login() {
               </div>
             </div>
             <div className="submit-container">
-              <button type="submit" className="submit" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Login'}
+              <button type="submit" className="submit">
+                Sign Up
               </button>
             </div>
-            {error && <div className="error-message">{error}</div>}
           </form>
         </div>
       </div>
@@ -73,4 +77,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default AdminRegister;
