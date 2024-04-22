@@ -1,28 +1,30 @@
-//import React from 'react'
-import { useState } from "react";
-
-import "../LoginSignup.css";
-import user_icon from "../assets/person.png";
-import email_icon from "../assets/email.png";
-import password_icon from "../assets/password.png";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Importing useNavigate instead of Redirect
+import '../LoginSignup.css';
+import email_icon from '../assets/email.png';
+import password_icon from '../assets/password.png';
+import user_icon from '../assets/person.png';
 
 function Signup() {
-  const [name, setName] = useState();
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
-  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate(); // Using useNavigate hook
 
   function handleSubmit(e) {
     e.preventDefault();
     axios
-      .post("http://localhost:3001/signup", { name, email, password })
-      .then((result) => {
-        console.log(result);
-        navigate("/login");
+      .post('http://localhost:3001/owner/auth/register', {
+        username,
+        email,
+        password,
       })
-      .catch((err) => console.log(err));
+      .then(result => {
+        console.log(result);
+        navigate('/ownerlogin'); // Navigate to login page after successful signup
+      })
+      .catch(err => console.log(err));
   }
 
   return (
@@ -40,21 +42,17 @@ function Signup() {
                 <input
                   type="text"
                   placeholder="Name"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                  }}
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
                 />
               </div>
               <div className="input">
                 <img src={email_icon} alt="email_icon" />
                 <input
-                  type="email"
-                  placeholder="Email"
+                  type="text"
+                  placeholder="text"
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                  }}
+                  onChange={e => setEmail(e.target.value)}
                 />
               </div>
               <div className="input">
@@ -63,9 +61,7 @@ function Signup() {
                   type="password"
                   placeholder="Password"
                   value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                  }}
+                  onChange={e => setPassword(e.target.value)}
                 />
               </div>
             </div>

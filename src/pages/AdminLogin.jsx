@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../LoginSignup.css';
 import email_icon from '../assets/email.png';
 import password_icon from '../assets/password.png';
 
-function Login() {
+function AdminLogin() {
   const [error, setError] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -14,19 +14,19 @@ function Login() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    setLoading(true); // Set loading state to true when form is submitted
+    setLoading(true);
     try {
-      console.log('Sending request:', { username, password }); // Debugging: Log the request body
-      const res = await axios.post('http://localhost:3001/user/auth/login', {
+      console.log('Sending request:', { username, password });
+      const res = await axios.post('http://localhost:3001/owner/auth/login', {
         username,
         password,
       });
-      setLoading(false); // Set loading state to false after API call
-      console.log('Response:', res.data); // Debugging: Log the response data
+      setLoading(false);
+      console.log('Response:', res.data);
       localStorage.setItem('user', JSON.stringify(res.data));
-      navigate('/');
+      navigate('/admin/dashboard/upload');
     } catch (err) {
-      setLoading(false); // Set loading state to false if API call fails
+      setLoading(false);
       setError(err.response.data.message);
     }
   };
@@ -64,8 +64,12 @@ function Login() {
               <button type="submit" className="submit" disabled={isLoading}>
                 {isLoading ? 'Logging in...' : 'Login'}
               </button>
+              {error && <div className="error-message">{error}</div>}
+              <div className="signup-link  text-red-900">
+                Donot have an account?{' '}
+                <Link to="/owner/auth/register">Sign up</Link>
+              </div>
             </div>
-            {error && <div className="error-message">{error}</div>}
           </form>
         </div>
       </div>
@@ -73,4 +77,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default AdminLogin;

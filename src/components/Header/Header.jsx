@@ -1,31 +1,47 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { FaTimes, FaBars } from "react-icons/fa";
+import axios from 'axios';
+import { useState } from 'react';
+import { FaBars, FaTimes } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [navbar, setNavbar] = useState(false);
   const Navbar = [
     {
-      name: "Home",
-      link: "/",
+      name: 'Home',
+      link: '/',
     },
     {
-      name: "About",
-      link: "/about",
+      name: 'About',
+      link: '/about',
     },
     {
-      name: "Explore Turfs",
-      link: "/exploreturfs",
+      name: 'Explore Turfs',
+      link: '/exploreturfs',
     },
     {
-      name: "For Turf Owners",
-      link: "/forturfowners",
+      name: 'For Turf Owners',
+      link: '/forturfowners',
     },
     {
-      name: "Contact",
-      link: "/contact",
+      name: 'Contact',
+      link: '/contact',
     },
   ];
+
+  const navigate = useNavigate(); // move useNavigate inside the function
+
+  const handleLogout = async () => {
+    try {
+      const res = await axios.post('http://localhost:3001/user/auth/logout');
+      localStorage.removeItem('user');
+      navigate('/'); // use navigate here
+      return true; // return true if logout is successful
+    } catch (error) {
+      console.log(error);
+      return false; // return false if logout fails
+    }
+  };
+
   return (
     <>
       <nav className="primaryBackground w-full h-auto lg:px-12 md:px-8 sm:px-7 px-6 py-2 shadow-md">
@@ -62,7 +78,7 @@ const Header = () => {
           {/* Navbar menu items section */}
           <div
             className={`flex flex-auto justify-between items-center md:block ${
-              navbar ? "block" : "hidden"
+              navbar ? 'block' : 'hidden'
             }`}
           >
             <ul className="justify-between list-none lg:flex md:flex sm:block block gap-x-5 gap-y-16">
@@ -91,6 +107,12 @@ const Header = () => {
                 >
                   Register
                 </Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-600 text-[1.1rem] font-normal text-white px-5 py-1.5 rounded"
+                >
+                  Logout
+                </button>
               </div>
             </ul>
           </div>
