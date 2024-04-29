@@ -256,68 +256,91 @@ app.post('/owner/auth/register', async (req, res) => {
 
 // POST request to mark time slots as unavailable for a selected date
 app.post('/book/:id', async (req, res) => {
-  const { date, unavailableTimeSlots } = req.body;
-  const turfId = req.params.id; // Get the turf ID from route parameters
-
-  // Check if the customer ID is present in the request body or headers
-  const customerId = req.body.customerId || req.headers['x-customer-id'];
-
-  if (!customerId) {
-      return res.status(401).json({ message: 'Please provide a customer ID' });
-  }
-
   try {
-      console.log("Starting database update...");
-      // Find the turf by ID
-      let turf = await TurfModel.findById(turfId);
+    const { date, timeSlot } = req.body;
+    const turfId = req.params.id;
+    const customerId = req.body.customerId || req.headers['x-customer-id'];
 
-      if (!turf) {
-          throw new Error('Turf not found');
-      }
+    // Check if the customer ID is provided
+    if (!customerId) {
+      return res.status(401).json({ message: 'Please provide a customer ID' });
+    }
 
-      // Find or create the booking for the selected date
-      let booking = await TurfModel.findOne({ turf: turfId, date });
+    // Find the turf by ID
+    const turf = await TurfModel.findById(turfId);
+    if (!turf) {
+      return res.status(404).json({ message: 'Turf not found' });
+    }
+    
 
-      if (!booking) {
-          console.log("Booking not found. Creating new booking...");
-          booking = new TurfModel({ turf: turfId, date });
-      }
+    // Find the date object corresponding to the provided date
+    let turfDate = turf.dates.find(d => d.date.toDateString() === new Date(date).toDateString());
+    if (!turfDate) {
+        // If the date is not found, add it to the turf's dates array
+        const newDate = {
+            date: new Date(date),
+        }
+        turf.dates.push(newDate);
+        await turf.save(); // Save the turf document with the new date added
+    
+        
+    }
+    turfDate = turf.dates.find(d => d.date.toDateString() === new Date(date).toDateString());
+    
 
-      // Update the unavailable time slots for the selected date
-      booking.unavailableTimeSlots = unavailableTimeSlots;
+    // Check if the selected time slot is already booked
+    if (!turfDate.availableTimeSlots.includes(timeSlot)) {
+      return res.status(400).json({ message: 'Selected time slot is already booked' });
+    }
 
-      // Assign the customer ID to the booking
-      booking.customer = customerId;
+    // Check if the selected time slot is not available
+   
 
-      // Find the customer by ID
-      let customer = await CustomerModel.findById(customerId);
+    // Create a new booking
+    const newBooking = {
+      date: new Date(date),
+      timeSlot,
+      status: 'pending',
+      customer: customerId
+    };
+   
 
-      if (!customer) {
-          throw new Error('Customer not found');
-      }
+    // Add the booking to the turf's bookings array
+    turf.bookings.push(newBooking);
 
-      // Add the turf ID to the customer's turfs array if not already included
-      if (!customer.turfs.includes(turfId)) {
-          customer.turfs.push(turfId);
-      }
+    // Mark the time slot as unavailable and remove it from available time slots
+    turfDate.unavailableTimeSlots.push(timeSlot);
+    turfDate.availableTimeSlots = turfDate.availableTimeSlots.filter(slot => slot !== timeSlot);
 
-      // Save the updated customer data
-      customer = await customer.save();
+    // Save the updated turf
+    await turf.save();
+   
+    const newInventoryItem = {
+      date: new Date(date),
+      time: timeSlot,
+      turf: turfId
+    };
 
-      // Remove unavailable time slots from available time slots
-      booking.availableTimeSlots = booking.availableTimeSlots.filter(slot => !unavailableTimeSlots.includes(slot));
+    // Find the customer by ID
+    const customer = await CustomerModel.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
 
-      // Save the updated booking
-      await booking.save();
-      
-      console.log("Database update completed successfully.");
+    // Push the new inventory item into the customer's inventory array
+    customer.inventory.push(newInventoryItem);
 
-      res.status(200).json({ message: 'Time slots marked as unavailable successfully' });
+    // Save the updated customer
+    await customer.save();
+
+
+    return res.status(200).json({ message: 'Booking successful', booking: newBooking });
   } catch (err) {
-      console.error("Error occurred:", err);
-      res.status(500).json({ message: 'An error occurred while marking time slots as unavailable' });
+    console.error('Error occurred:', err);
+    return res.status(500).json({ message: 'An error occurred while processing the booking' });
   }
 });
+
 
 
 
