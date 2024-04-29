@@ -6,7 +6,7 @@ const BookSingleTurf = ({ month = dayjs().month(), year = dayjs().year() }) => {
   const firstDayOfMonth = dayjs().year(year).month(month).date(1);
   const lastDayOfMonth = dayjs().year(year).month(month).endOf('month');
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
   const arrayOfDates = [];
   const days = ['Su', 'M', 'Tu', 'W', 'Th', 'Fr', 'Sa'];
 
@@ -19,11 +19,16 @@ const BookSingleTurf = ({ month = dayjs().month(), year = dayjs().year() }) => {
 
   const handleDateClick = date => {
     setSelectedDate(date);
-    setSelectedTimeSlot(null); // Reset selected time slot when date changes
+    setSelectedTimeSlots([]); // Reset selected time slots when date changes
   };
 
-  const handleTimeSlotClick = timeSlot => {
-    setSelectedTimeSlot(timeSlot);
+  const handleTimeSlotClick = hour => {
+    const isSelected = selectedTimeSlots.includes(hour);
+    if (isSelected) {
+      setSelectedTimeSlots(selectedTimeSlots.filter(slot => slot !== hour)); // Remove if already selected
+    } else {
+      setSelectedTimeSlots([...selectedTimeSlots, hour]); // Add if not selected
+    }
   };
 
   return (
@@ -63,7 +68,9 @@ const BookSingleTurf = ({ month = dayjs().month(), year = dayjs().year() }) => {
               <button
                 key={hour}
                 className={`px-4 py-2 rounded border ${
-                  selectedTimeSlot === hour ? 'bg-blue-600 text-white' : ''
+                  selectedTimeSlots.includes(hour)
+                    ? 'bg-blue-600 text-white'
+                    : ''
                 }`}
                 onClick={() => handleTimeSlotClick(hour)}
               >
