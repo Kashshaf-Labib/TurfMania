@@ -1,15 +1,21 @@
 const mongoose = require('mongoose');
 
 const BookingSchema = new mongoose.Schema({
-    date: Date ,
+    date: Date,
     timeSlot: String,
     status: {
         type: String,
         enum: ['pending', 'confirmed', 'cancelled'], // Add more status options as needed
         default: 'pending',
     },
+    customer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'customers' // Assuming your customer model is named 'Customer'
+    }
     // You can add more fields here as needed, such as user details, payment info, etc.
 });
+
+module.exports = mongoose.model('Booking', BookingSchema);
 
 const TurfSchema = new mongoose.Schema({
     name: String,
@@ -18,51 +24,43 @@ const TurfSchema = new mongoose.Schema({
     facilities: String,
     ratePerHour: Number,
     bookings: [BookingSchema],
-    customers: [{ type: mongoose.Schema.Types.ObjectId, ref: "customers" }],
-    date: {
-      type: Date,
-    
-  },
-  // Define available time slots
-  availableTimeSlots: {
-      type: [String],
-      default: [
-          '12:00 AM - 01:00 AM',
-          '01:00 AM - 02:00 AM',
-          '02:00 AM - 03:00 AM',
-          '03:00 AM - 04:00 AM',
-          '04:00 AM - 05:00 AM',
-          '05:00 AM - 06:00 AM',
-          '06:00 AM - 07:00 AM',
-          '07:00 AM - 08:00 AM',
-          '08:00 AM - 09:00 AM',
-          '09:00 AM - 10:00 AM',
-          '10:00 AM - 11:00 AM',
-          '11:00 AM - 12:00 PM',
-          '12:00 PM - 01:00 PM',
-          '01:00 PM - 02:00 PM',
-          '02:00 PM - 03:00 PM',
-          '03:00 PM - 04:00 PM',
-          '04:00 PM - 05:00 PM',
-          '05:00 PM - 06:00 PM',
-          '06:00 PM - 07:00 PM',
-          '07:00 PM - 08:00 PM',
-          '08:00 PM - 09:00 PM',
-          '09:00 PM - 10:00 PM',
-          '10:00 PM - 11:00 PM',
-          '11:00 PM - 12:00 AM'
-      ]
-  },
-  // Define unavailable time slots
-  unavailableTimeSlots: {
-      type: [String],
-      default: []
-  },
-  status: {
-      type: String,
-      enum: ['pending', 'confirmed', 'cancelled'],
-      default: 'pending'
-  },
+   
+    dates: [{
+        date: {
+            type: Date
+        },
+        availableTimeSlots: {
+            type: [String],
+            default: [
+                '07:00 - 08:00',
+                '08:00 - 09:00',
+                '09:00 - 10:00',
+                '10:00 - 11:00',
+                '11:00 - 12:00',
+                '12:00 - 13:00',
+                '13:00 - 14:00',
+                '14:00 - 15:00',
+                '15:00 - 16:00',
+                '16:00 - 17:00',
+                '17:00 - 18:00',
+                '18:00 - 19:00',
+                '19:00 - 20:00',
+                '20:00 - 21:00',
+                '21:00 - 22:00',
+                '22:00 - 23:00',
+                '23:00 - 00:00',
+            ]
+        },
+        unavailableTimeSlots: {
+            type: [String],
+            default: []
+        }
+    }],
+    status: {
+        type: String,
+        enum: ['pending', 'confirmed', 'cancelled'],
+        default: 'pending'
+    },
 });
 
 const TurfModel = mongoose.model("turfs", TurfSchema);

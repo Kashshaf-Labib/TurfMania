@@ -1,9 +1,11 @@
+import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import BookSingleTurf from './BookSingleTurf';
 import Header from './Header/Header';
 
 const SingleTurf = () => {
+  const [date, setDate] = useState('');
   const [turfData, setTurfData] = useState(null);
   const { id } = useParams();
 
@@ -29,8 +31,49 @@ const SingleTurf = () => {
   }
 
   const { name, imageURL, location, facilities, ratePerHour } = turfData;
-
   const googleMapsUrl = `https://maps.google.com/maps?q=${name},${name}&z=14&output=embed`;
+
+  async function handleBook() {
+    // Retrieve the customer ID and authentication token from local storage
+    const customerData = JSON.parse(localStorage.getItem('user'));
+    if (!customerData || !customerData.token || !customerData._id) {
+      console.error('User data not found in localStorage or invalid.');
+      return;
+    }
+    const authToken = customerData.token;
+    const customerId = customerData._id;
+
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/book/${id}`,
+        {
+          date: '2020-9-09',
+          timeSlot: '16:00 - 17:00',
+          customerId, // Pass the customer ID
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+        },
+      );
+
+      console.log(response);
+      // Handle success
+    } catch (error) {
+      console.error('Error occurred:', error.response); // Log the error response
+      if (error.response && error.response.data) {
+        console.error('Error data:', error.response.data); // Log additional error data
+      }
+      // Handle error
+    }
+  }
+
+  const handleDateChange = selectedDate => {
+    setDate(selectedDate);
+  };
 
   return (
     <div>
@@ -44,14 +87,18 @@ const SingleTurf = () => {
           <p className="text-lg mb-2">Location: {location}</p>
           <p className="text-lg mb-2">Facilities: {facilities}</p>
           <p className="text-lg mb-2">Rate Per Hour: ${ratePerHour}</p>
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={handleBook}
+          >
             Book Now
           </button>
         </div>
-        <BookSingleTurf />
+        <BookSingleTurf handleDateChange={handleDateChange} />
       </div>
       <div className="mt-8 px-4 lg:px-24">
         <iframe
+          title="Google Maps"
           width="100%"
           height="400"
           frameBorder="0"
