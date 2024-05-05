@@ -15,14 +15,14 @@ function Signup() {
   function handleSubmit(e) {
     e.preventDefault();
     axios
-      .post('http://localhost:3001/owner/auth/register', {
+      .post('http://localhost:3001/user/auth/register', {
         username,
         email,
         password,
       })
       .then(result => {
         console.log(result);
-        navigate('/ownerlogin'); // Navigate to login page after successful signup
+        navigate('/login'); // Navigate to login page after successful signup
       })
       .catch(err => console.log(err));
   }
