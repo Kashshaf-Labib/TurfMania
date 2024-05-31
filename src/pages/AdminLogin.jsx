@@ -1,30 +1,30 @@
-import axios from 'axios';
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import '../LoginSignup.css';
-import email_icon from '../assets/email.png';
-import password_icon from '../assets/password.png';
+import axios from "axios";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../LoginSignup.css";
+import email_icon from "../assets/email.png";
+import password_icon from "../assets/password.png";
 
 function AdminLogin() {
-  const [error, setError] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [error, setError] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      console.log('Sending request:', { username, password });
-      const res = await axios.post('http://localhost:3001/owner/auth/login', {
+      console.log("Sending request:", { username, password });
+      const res = await axios.post("http://localhost:3001/owner/auth/login", {
         username,
         password,
       });
       setLoading(false);
-      console.log('Response:', res.data);
-      localStorage.setItem('user', JSON.stringify(res.data));
-      navigate('/admin/dashboard/upload');
+      console.log("Response:", res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
+      navigate("/admin/dashboard/upload");
     } catch (err) {
       setLoading(false);
       setError(err.response.data.message);
@@ -47,7 +47,7 @@ function AdminLogin() {
                   type="text"
                   placeholder="Username"
                   value={username}
-                  onChange={e => setUsername(e.target.value)}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
               </div>
               <div className="input">
@@ -56,18 +56,23 @@ function AdminLogin() {
                   type="password"
                   placeholder="Password"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
             <div className="submit-container">
               <button type="submit" className="submit" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? "Logging in..." : "Login"}
               </button>
               {error && <div className="error-message">{error}</div>}
               <div className="signup-link  text-red-900">
-                Donot have an account?{' '}
-                <Link to="/owner/auth/register">Sign up</Link>
+                Don't have an account?{" "}
+                <Link
+                  to="/owner/auth/register"
+                  className="text-red-600 font-semibold"
+                >
+                  Sign up
+                </Link>
               </div>
             </div>
           </form>

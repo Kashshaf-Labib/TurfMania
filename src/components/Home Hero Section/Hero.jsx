@@ -54,9 +54,6 @@ const Hero = ({
           <p>See the video</p>
         </div>
       </div>
-      <button onClick={handleLogout} className="logout-button">
-        Logout
-      </button>
     </div>
   );
 };

@@ -96,6 +96,7 @@
 .submit-container {
   display: flex;
   gap: 30px;
+  flex-direction: column;
   margin: 60px auto;
   align-items: center;
   justify-content: center;

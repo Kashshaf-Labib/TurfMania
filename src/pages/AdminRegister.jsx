@@ -50,7 +50,7 @@ function AdminRegister() {
                 <img src={email_icon} alt="email_icon" />
                 <input
                   type="text"
-                  placeholder="text"
+                  placeholder="Email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                 />
