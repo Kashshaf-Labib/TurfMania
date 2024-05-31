@@ -1,46 +1,49 @@
-import axios from 'axios';
-import { useState } from 'react';
-import { FaBars, FaTimes } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import axios from "axios";
+import { useContext, useState } from "react";
+import { FaBars, FaTimes } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { UserContext } from "../../UserContext";
 
 const Header = () => {
   const [navbar, setNavbar] = useState(false);
+  const { user } = useContext(UserContext);
+
   const Navbar = [
     {
-      name: 'Home',
-      link: '/',
+      name: "Home",
+      link: "/",
     },
     {
-      name: 'About',
-      link: '/about',
+      name: "About",
+      link: "/about",
     },
     {
-      name: 'Explore Turfs',
-      link: '/exploreturfs',
+      name: "Explore Turfs",
+      link: "/exploreturfs",
     },
     {
-      name: 'For Turf Owners',
-      link: '/forturfowners',
+      name: "For Turf Owners",
+      link: "/forturfowners",
     },
     {
-      name: 'Contact',
-      link: '/contact',
+      name: "Contact",
+      link: "/contact",
     },
   ];
 
-  const navigate = useNavigate(); // move useNavigate inside the function
+  //const navigate = useNavigate(); // move useNavigate inside the function
 
-  const handleLogout = async () => {
-    try {
-      const res = await axios.post('http://localhost:3001/user/auth/logout');
-      localStorage.removeItem('user');
-      navigate('/'); // use navigate here
-      return true; // return true if logout is successful
-    } catch (error) {
-      console.log(error);
-      return false; // return false if logout fails
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     const res = await axios.post('http://localhost:3001/user/auth/logout');
+  //     localStorage.removeItem('user');
+  //     navigate('/'); // use navigate here
+  //     return true; // return true if logout is successful
+  //   } catch (error) {
+  //     console.log(error);
+  //     return false; // return false if logout fails
+  //   }
+  // };
 
   return (
     <>
@@ -78,7 +81,7 @@ const Header = () => {
           {/* Navbar menu items section */}
           <div
             className={`flex flex-auto justify-between items-center md:block ${
-              navbar ? 'block' : 'hidden'
+              navbar ? "block" : "hidden"
             }`}
           >
             <ul className="justify-between list-none lg:flex md:flex sm:block block gap-x-5 gap-y-16">
@@ -94,7 +97,7 @@ const Header = () => {
                   </li>
                 ))}
               </div>
-              <div className="loginreg flex items-center justify-end gap-4">
+              {/* <div className="loginreg flex items-center justify-end gap-4">
                 <Link
                   to="/login?action=login"
                   className="bg-slate-50 text-[1.1rem] font-normal text-black px-5 py-1.5 rounded md:ml-6 sm:ml-0 ml-0"
@@ -113,7 +116,35 @@ const Header = () => {
                 >
                   Logout
                 </button>
-              </div>
+              </div> */}
+              <a
+                href={user ? "/account" : "/login"}
+                className="flex items-center gap-2 border border-gray-300 rounded-full py-2 px-4 "
+              >
+                {
+                  user ? (
+                    <>
+                    <div className="bg-gray-500 text-white rounded-full border border-gray-500 overflow-hidden">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="w-6 h-6 relative top-1"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div className="text-white">{user.username}</div>
+                    </>
+                  ) : (
+                    <span className="text-white">Login</span>
+                  )
+                }
+              </a>
             </ul>
           </div>
         </div>
