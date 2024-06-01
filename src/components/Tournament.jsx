@@ -1,18 +1,21 @@
 import { Button, Label, Select, TextInput } from 'flowbite-react';
 import React, { useState } from 'react';
+import Header from './Header/Header';
+
+import { useNavigate } from 'react-router-dom';
 
 const TeamForm = ({ index, onChange }) => (
-  <div className="mb-4">
+  <div className="mb-6">
     <Label
       htmlFor={`team-${index}`}
       value={`Team ${index + 1}`}
-      className="text-gray-200"
+      className="text-gray-300"
     />
     <TextInput
       id={`team-${index}`}
       placeholder={`Enter name for Team ${index + 1}`}
       required
-      className="mt-1 bg-gray-700 text-gray-200"
+      className="mt-2 bg-gray-800 text-gray-300 border border-gray-600 rounded-md"
       onChange={e => onChange(e.target.value)}
     />
   </div>
@@ -24,6 +27,8 @@ const Tournament = () => {
     Array.from({ length: numTeams }, (_, i) => `Team ${i + 1}`),
   );
   const [playDays, setPlayDays] = useState('');
+  const [tournamentType, setTournamentType] = useState('knockout');
+  const navigate = useNavigate();
 
   const handleNumTeamsChange = event => {
     const newNumTeams = parseInt(event.target.value, 10);
@@ -46,68 +51,121 @@ const Tournament = () => {
     setPlayDays(event.target.value);
   };
 
+  const handleTournamentTypeChange = event => {
+    setTournamentType(event.target.value);
+    if (event.target.value === 'group') {
+      setNumTeams(5); // Default to 5 teams for group stage
+      setTeamNames(
+        Array.from({ length: 5 }, (_, i) => teamNames[i] || `Team ${i + 1}`),
+      );
+    } else {
+      setNumTeams(2); // Default to 2 teams for knockout stage
+      setTeamNames(
+        Array.from({ length: 2 }, (_, i) => teamNames[i] || `Team ${i + 1}`),
+      );
+    }
+  };
+
   const handleSubmit = event => {
     event.preventDefault();
-    // Handle form submission
+    // Pass the necessary state data to TournamentScheduler component using the navigate function
+    navigate('/turf/tournamentSchedular', {
+      state: {
+        tournamentType,
+        numTeams,
+        teamNames,
+        playDays,
+      },
+    });
   };
 
   return (
-    <div className="bg-gray-900 min-h-screen flex flex-col justify-center items-center">
-      <div className="max-w-md bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-        <h1 className="font-serif text-4xl font-bold text-white mb-8">
-          Sports Schedule Maker
-        </h1>
-        <div className="mb-4">
-          <Label
-            htmlFor="teams"
-            value="Number of teams"
-            className="text-gray-200"
-          />
-          <Select
-            id="teams"
-            value={numTeams}
-            onChange={handleNumTeamsChange}
-            required
-            className="mt-1 bg-gray-700 text-gray-200"
-          >
-            {[2, 4, 8, 16, 32].map(option => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </Select>
+    <div>
+      <Header />
+      <div className="bg-gray-900 min-h-screen flex justify-center items-center">
+        <div className="flex flex-row max-w-4xl w-full bg-gray-800 p-8 rounded-lg shadow-lg">
+          <div className="w-1/2 mr-4">
+            <h1 className="font-serif text-4xl font-bold text-white mb-8 text-center">
+              Sports Schedule Maker
+            </h1>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-6">
+                <Label
+                  htmlFor="tournamentType"
+                  value="Tournament Type"
+                  className="text-gray-300"
+                />
+                <Select
+                  id="tournamentType"
+                  value={tournamentType}
+                  onChange={handleTournamentTypeChange}
+                  required
+                  className="mt-2 bg-gray-800 text-gray-300 border border-gray-600 rounded-md"
+                >
+                  <option value="knockout">Knockout</option>
+                  <option value="group">Group Stage</option>
+                </Select>
+              </div>
+              <div className="mb-6">
+                <Label
+                  htmlFor="teams"
+                  value="Number of teams"
+                  className="text-gray-300"
+                />
+                <Select
+                  id="teams"
+                  value={numTeams}
+                  onChange={handleNumTeamsChange}
+                  required
+                  className="mt-2 bg-gray-800 text-gray-300 border border-gray-600 rounded-md"
+                >
+                  {tournamentType === 'group'
+                    ? Array.from({ length: 28 }, (_, i) => i + 5).map(
+                        option => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ),
+                      )
+                    : [2, 4, 8, 16, 32].map(option => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                </Select>
+              </div>
+              {teamNames.map((team, index) => (
+                <TeamForm
+                  key={index}
+                  index={index}
+                  onChange={name => handleTeamNameChange(index, name)}
+                />
+              ))}
+              <div className="mb-6">
+                <Label
+                  htmlFor="playDays"
+                  value="Number of play days"
+                  className="text-gray-300"
+                />
+                <TextInput
+                  id="playDays"
+                  placeholder="Enter number of play days"
+                  required
+                  className="mt-2 bg-gray-800 text-gray-300 border border-gray-600 rounded-md"
+                  onChange={handlePlayDaysChange}
+                />
+              </div>
+              <div className="flex justify-center">
+                <Button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
+                >
+                  Generate Schedule
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form onSubmit={handleSubmit}>
-          {teamNames.map((team, index) => (
-            <TeamForm
-              key={index}
-              index={index}
-              onChange={name => handleTeamNameChange(index, name)}
-            />
-          ))}
-          <div className="mb-4">
-            <Label
-              htmlFor="playDays"
-              value="Number of play days"
-              className="text-gray-200"
-            />
-            <TextInput
-              id="playDays"
-              placeholder="Enter number of play days"
-              required
-              className="mt-1 bg-gray-700 text-gray-200"
-              onChange={handlePlayDaysChange}
-            />
-          </div>
-          <div className="flex justify-center">
-            <Button
-              type="submit"
-              className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded"
-            >
-              Generate Schedule
-            </Button>
-          </div>
-        </form>
       </div>
     </div>
   );
