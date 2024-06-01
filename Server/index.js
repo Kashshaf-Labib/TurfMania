@@ -8,6 +8,10 @@ const cookieParser =require('cookie-parser');
 const jwt =require(`jsonwebtoken`);
 const TurfOnweModel = require("./models/admin");
 
+const Timeslot = require('./models/timeslot');
+const dayjs = require('dayjs');
+const Booking = require('./models/booking');
+
 
 
 
@@ -34,29 +38,51 @@ app.post("/signup", (req, res) => {
     })
     .catch((err) => res.json(err));
 });
-app.post("/upload-turf", async (req, res) => {
-  try {
-    const { customers, ...turfData } = req.body; // Extract customers array and other Turf data from request body
-    const newTurf = await TurfModel.create(turfData); // Create a new Turf object in the database
+const createDefaultTimeslots = async (turfId) => {
+  const today = dayjs();
+  const timeslots = [];
 
-    // Check if customers array is provided in the request body
-    if (customers && customers.length > 0) {
-      // Iterate over each customer ObjectId in the customers array
-      for (const customerId of customers) {
-        // Find the Customer object by ObjectId
-        const customer = await CustomerModel.findById(customerId);
-        if (customer) {
-          // Add the Turf ObjectId to the customer's turfs array
-          customer.turfs.push(newTurf._id);
-          // Save the updated customer object
-          await customer.save();
-        }
-      }
+  for (let i = 0; i < 30; i++) { // Create timeslots for the next 30 days
+    const date = today.add(i, 'day').toDate();
+    const dailyTimeslots = {
+      turf_id: turfId,
+      date: date,
+      timeslots: []
+    };
+
+    for (let hour = 8; hour < 20; hour++) { // Assuming timeslots from 8 AM to 8 PM
+      dailyTimeslots.timeslots.push({
+        start_time: `${hour}:00`,
+        end_time: `${hour + 1}:00`,
+        is_booked: false,
+        booking_id: null
+      });
     }
 
-    res.json(newTurf); // Send the response with the newly created Turf object
+    timeslots.push(dailyTimeslots);
+  }
+
+  await Timeslot.insertMany(timeslots);
+};
+app.post("/upload-turf", async (req, res) => {
+  try {
+    console.log("Request received:", req.body);
+    const turfData = req.body; // Get turfData directly from the request body
+    if (!turfData) {
+      console.error("Missing turfData in request body");
+      return res.status(400).json({ message: "Missing turfData in request body" });
+    }
+
+    const newTurf = await TurfModel.create(turfData);
+    const savedTurf = await newTurf.save();
+    console.log("Turf created:", newTurf);
+
+    await createDefaultTimeslots(newTurf._id);
+    console.log("Default timeslots created for turf:", newTurf._id);
+
+    res.status(201).json(newTurf);
   } catch (err) {
-    console.error(err);
+    console.error("Error uploading turf:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -274,91 +300,96 @@ app.post('/owner/auth/register', async (req, res) => {
 
 
 // POST request to mark time slots as unavailable for a selected date
-app.post('/book/:id', async (req, res) => {
+app.get('/api/available-timeslots', async (req, res) => {
+  const { date, turfId } = req.query;
+
+  if (!date || !turfId) {
+    return res.status(400).json({ error: 'Date and turfId are required' });
+  }
+
   try {
-    const { date, timeSlot } = req.body;
-    const turfId = req.params.id;
-    const customerId = req.body.customerId || req.headers['x-customer-id'];
+    const startOfDay = dayjs(date).startOf('day').toDate();
+    const endOfDay = dayjs(date).endOf('day').toDate();
 
-    // Check if the customer ID is provided
-    if (!customerId) {
-      return res.status(401).json({ message: 'Please provide a customer ID' });
+    console.log(`Querying timeslots for turfId: ${turfId}, between ${startOfDay} and ${endOfDay}`);
+
+    const timeslot = await Timeslot.findOne({
+      turf_id: turfId,
+      date: { $gte: startOfDay, $lt: endOfDay }
+    }).exec();
+
+    if (!timeslot) {
+      return res.status(404).json({ message: 'No timeslots found for this date' });
     }
 
-    // Find the turf by ID
-    const turf = await TurfModel.findById(turfId);
-    if (!turf) {
-      return res.status(404).json({ message: 'Turf not found' });
-    }
-    
+    const availableTimeSlots = timeslot.timeslots.filter(slot => !slot.is_booked);
 
-    // Find the date object corresponding to the provided date
-    let turfDate = turf.dates.find(d => d.date.toDateString() === new Date(date).toDateString());
-    if (!turfDate) {
-        // If the date is not found, add it to the turf's dates array
-        const newDate = {
-            date: new Date(date),
-        }
-        turf.dates.push(newDate);
-        await turf.save(); // Save the turf document with the new date added
-    
-        
-    }
-    turfDate = turf.dates.find(d => d.date.toDateString() === new Date(date).toDateString());
-    
-
-    // Check if the selected time slot is already booked
-    if (!turfDate.availableTimeSlots.includes(timeSlot)) {
-      return res.status(400).json({ message: 'Selected time slot is already booked' });
-    }
-
-    // Check if the selected time slot is not available
-   
-
-    // Create a new booking
-    const newBooking = {
-      date: new Date(date),
-      timeSlot,
-      status: 'pending',
-      customer: customerId
-    };
-   
-
-    // Add the booking to the turf's bookings array
-    turf.bookings.push(newBooking);
-
-    // Mark the time slot as unavailable and remove it from available time slots
-    turfDate.unavailableTimeSlots.push(timeSlot);
-    turfDate.availableTimeSlots = turfDate.availableTimeSlots.filter(slot => slot !== timeSlot);
-
-    // Save the updated turf
-    await turf.save();
-   
-    const newInventoryItem = {
-      date: new Date(date),
-      time: timeSlot,
-      turf: turfId
-    };
-
-    // Find the customer by ID
-    const customer = await CustomerModel.findById(customerId);
-    if (!customer) {
-      return res.status(404).json({ message: 'Customer not found' });
-    }
-
-    // Push the new inventory item into the customer's inventory array
-    customer.inventory.push(newInventoryItem);
-
-    // Save the updated customer
-    await customer.save();
-
-
-    return res.status(200).json({ message: 'Booking successful', booking: newBooking });
-  } catch (err) {
-    console.error('Error occurred:', err);
-    return res.status(500).json({ message: 'An error occurred while processing the booking' });
+    res.json(availableTimeSlots);
+  } catch (error) {
+    console.error('Error fetching available timeslots:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+
+
+
+app.post('/api/book-turf', async (req, res) => {
+  try {
+    const { turf_id, user_id, timeslots, date } = req.body;
+
+    // Validate the input
+    if (!turf_id || !user_id || !timeslots || !date) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Convert date to start and end of day for consistency
+    const startOfDay = dayjs(date).startOf('day').toDate();
+    const endOfDay = dayjs(date).endOf('day').toDate();
+
+    // Create bookings and update timeslots
+    const bookings = await Promise.all(
+      timeslots.map(async (start_time) => {
+        // Create a booking entry
+        const booking = new Booking({
+          user_id,
+          turf_id,
+          start_time,
+          end_time: '', // Add end_time if available
+          date: new Date(date),
+        });
+        await booking.save();
+
+        // Update the timeslot to mark it as booked and associate the booking_id
+        const result = await Timeslot.updateOne(
+          { 
+            turf_id, 
+            date: { $gte: startOfDay, $lt: endOfDay },
+            'timeslots.start_time': start_time 
+          },
+          {
+            $set: {
+              'timeslots.$.is_booked': true,
+              'timeslots.$.booking_id': booking._id,
+            },
+          }
+        );
+
+        if (result.nModified === 0) {
+          throw new Error('Timeslot update failed');
+        }
+
+        return booking;
+      })
+    );
+
+    res.status(201).json({ message: 'Booking successful', bookings });
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 
 
 
