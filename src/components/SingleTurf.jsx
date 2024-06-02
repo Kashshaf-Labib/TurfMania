@@ -133,15 +133,15 @@ const SingleTurf = () => {
           <h1 className="text-3xl font-bold mb-4">{name}</h1>
           <p className="text-lg mb-2">Location: {location}</p>
           <p className="text-lg mb-2">Facilities: {facilities}</p>
-          <p className="text-lg mb-2">Rate Per Hour: ${ratePerHour}</p>
+          <p className="text-lg mb-2">Rate Per Hour: ৳{ratePerHour}</p>
           <button
             onClick={handleJoinTournament}
             className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md mt-4"
           >
-            Join Tournament
+            Organize Tournament
           </button>
         </div>
-        <BookSingleTurf turfId={id} />
+        <BookSingleTurf turfId={id} ratePerHour={ratePerHour} />
       </div>
       <div className="mt-8 px-4 lg:px-24">
         <iframe

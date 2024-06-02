@@ -4,7 +4,7 @@
   background-image: url("./assets/LoginSignupBackground.jpg");
   background-size: cover;
   background-position: center;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,7 +17,7 @@
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  height: 700px;
+  min-height: 700px;
   width: 700px;
   margin: auto;
 }
@@ -31,7 +31,7 @@
 }
 
 .text {
-  color: rgb(18, 29, 236);
+  color: #1d2e28;
   font-size: 48px;
   font-weight: 700;
 }
@@ -39,7 +39,7 @@
 .underline {
   width: 61px;
   height: 6px;
-  background-color: blue;
+  background-color: #1d2e28;
   border-radius: 9px;
 }
 
@@ -109,7 +109,7 @@
   width: 220px;
   height: 59px;
   color: #ffff;
-  background: #4c00b4;
+  background: #1d2e28;
   border-radius: 50px;
   font-size: 19px;
   font-weight: 700;

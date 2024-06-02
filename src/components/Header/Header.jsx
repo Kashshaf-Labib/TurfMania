@@ -26,24 +26,10 @@ const Header = () => {
       link: "/forturfowners",
     },
     {
-      name: "Contact",
-      link: "/contact",
+      name: "Admin Login",
+      link: "/systemadminlogin",
     },
   ];
-
-  //const navigate = useNavigate(); // move useNavigate inside the function
-
-  // const handleLogout = async () => {
-  //   try {
-  //     const res = await axios.post('http://localhost:3001/user/auth/logout');
-  //     localStorage.removeItem('user');
-  //     navigate('/'); // use navigate here
-  //     return true; // return true if logout is successful
-  //   } catch (error) {
-  //     console.log(error);
-  //     return false; // return false if logout fails
-  //   }
-  // };
 
   return (
     <>
@@ -97,33 +83,12 @@ const Header = () => {
                   </li>
                 ))}
               </div>
-              {/* <div className="loginreg flex items-center justify-end gap-4">
-                <Link
-                  to="/login?action=login"
-                  className="bg-slate-50 text-[1.1rem] font-normal text-black px-5 py-1.5 rounded md:ml-6 sm:ml-0 ml-0"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/signup?action=signup"
-                  className="bg-green-800 hover:bg-green-900 text-[1.1rem] font-normal text-white px-5 py-1.5 rounded"
-                >
-                  Register
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-600 text-[1.1rem] font-normal text-white px-5 py-1.5 rounded"
-                >
-                  Logout
-                </button>
-              </div> */}
               <a
                 href={user ? "/account" : "/login"}
                 className="flex items-center gap-2 border border-gray-300 rounded-full py-2 px-4 "
               >
-                {
-                  user ? (
-                    <>
+                {user ? (
+                  <>
                     <div className="bg-gray-500 text-white rounded-full border border-gray-500 overflow-hidden">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -139,11 +104,10 @@ const Header = () => {
                       </svg>
                     </div>
                     <div className="text-white">{user.username}</div>
-                    </>
-                  ) : (
-                    <span className="text-white">Login</span>
-                  )
-                }
+                  </>
+                ) : (
+                  <span className="text-white">Login</span>
+                )}
               </a>
             </ul>
           </div>
