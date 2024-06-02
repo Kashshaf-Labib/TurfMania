@@ -11,7 +11,8 @@ const ReviewModel = require("./models/review");
 const Timeslot = require("./models/timeslot");
 const dayjs = require("dayjs");
 const Booking = require("./models/booking");
-
+const TournamentModel =require("./models/Tournament");
+const MatchModel=require('./models/matches')
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -405,6 +406,72 @@ app.post("/api/book-turf", async (req, res) => {
   } catch (error) {
     console.error("Error creating booking:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+app.post('/api/book-tournament', async (req, res) => {
+  try {
+    const { tournament_id, timeslots, date, matches } = req.body;
+
+    // Check for missing required fields
+    if (!tournament_id || !timeslots || !date || !matches) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const startTimes = [];
+    const bookingResults = await Promise.all(
+      timeslots.map(async (start_time) => {
+        startTimes.push(start_time);
+
+        // Assuming end_time is one hour after start_time, adjust as needed
+        const end_time = dayjs(start_time, 'HH:mm').add(1, 'hour').format('HH:mm');
+
+        const match = new MatchModel({
+          tournament_id,
+          start_time,
+          end_time,
+          date: new Date(date),
+          matches,
+        });
+
+        await match.save();
+
+        // Update the tournament model to set the is_booked flag
+        const result = await TournamentModel.updateOne(
+          { _id: tournament_id },
+          {
+            $set: {
+              'matches.$[elem].is_booked': true,
+            },
+          }
+          
+        );
+
+        return result;
+      })
+    );
+
+    res.status(201).json({ message: 'Booking successful', bookingResults });
+  } catch (error) {
+    console.error('Error booking tournament:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+app.post('/tournaments', async (req, res) => {
+  const { turf_id, creator_id, matchnumber } = req.body;
+  console.log('Request body:', req.body); // Debugging line
+
+  try {
+    const newTournament = new TournamentModel({
+      turf_id,
+      creator_id,
+      matchnumber,
+    });
+
+    const savedTournament = await newTournament.save();
+    res.status(201).json(savedTournament);
+  } catch (error) {
+    console.error('Error creating tournament:', error);
+    res.status(500).json({ error: 'Failed to create tournament' });
   }
 });
 

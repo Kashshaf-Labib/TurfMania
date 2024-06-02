@@ -1,8 +1,10 @@
 import { Button, Label, Select, TextInput } from 'flowbite-react';
 import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import Header from './Header/Header';
 
-import { useNavigate } from 'react-router-dom';
+const user = localStorage.getItem('user');
+const customerId = JSON.parse(user);
 
 const TeamForm = ({ index, onChange }) => (
   <div className="mb-6">
@@ -29,6 +31,7 @@ const Tournament = () => {
   const [playDays, setPlayDays] = useState('');
   const [tournamentType, setTournamentType] = useState('knockout');
   const navigate = useNavigate();
+  const { id: turfId } = useParams();
 
   const handleNumTeamsChange = event => {
     const newNumTeams = parseInt(event.target.value, 10);
@@ -66,17 +69,57 @@ const Tournament = () => {
     }
   };
 
-  const handleSubmit = event => {
+  const calculateMatchNumber = () => {
+    if (tournamentType === 'knockout') {
+      let n = numTeams;
+      let matches = 0;
+      while (n > 1) {
+        matches += Math.floor(n / 2);
+        n = Math.ceil(n / 2);
+      }
+      return matches;
+    } else if (tournamentType === 'group') {
+      return (numTeams * (numTeams - 1)) / 2 + 3;
+    }
+  };
+
+  const handleSubmit = async event => {
     event.preventDefault();
-    // Pass the necessary state data to TournamentScheduler component using the navigate function
-    navigate('/turf/tournamentSchedular', {
-      state: {
-        tournamentType,
-        numTeams,
-        teamNames,
-        playDays,
-      },
-    });
+    const matchNumber = calculateMatchNumber();
+    console.log('Match number:', matchNumber); // Debugging line
+
+    try {
+      const response = await fetch('http://localhost:3001/tournaments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          turf_id: turfId,
+          creator_id: customerId, // Ensure correct customer ID
+          matchnumber: matchNumber,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      console.log('Tournament created:', data);
+
+      navigate(`TournamentSchedular/${data._id}`, {
+        state: {
+          matchNumber,
+          tournamentType,
+          numTeams,
+          teamNames,
+          playDays,
+        },
+      });
+    } catch (error) {
+      console.error('Error creating tournament:', error);
+    }
   };
 
   return (
@@ -141,20 +184,7 @@ const Tournament = () => {
                   onChange={name => handleTeamNameChange(index, name)}
                 />
               ))}
-              <div className="mb-6">
-                <Label
-                  htmlFor="playDays"
-                  value="Number of play days"
-                  className="text-gray-300"
-                />
-                <TextInput
-                  id="playDays"
-                  placeholder="Enter number of play days"
-                  required
-                  className="mt-2 bg-gray-800 text-gray-300 border border-gray-600 rounded-md"
-                  onChange={handlePlayDaysChange}
-                />
-              </div>
+
               <div className="flex justify-center">
                 <Button
                   type="submit"

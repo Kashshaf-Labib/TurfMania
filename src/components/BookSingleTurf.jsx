@@ -1,12 +1,14 @@
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
-
+import React, { useEffect, useState } from 'react';
 
 const BookSingleTurf = ({
   month = dayjs().month(),
   year = dayjs().year(),
   turfId,
+  tournament_id = '',
+  teams,
+  numberofmatches,
 }) => {
   const firstDayOfMonth = dayjs().year(year).month(month).startOf('month');
   const lastDayOfMonth = dayjs().year(year).month(month).endOf('month');
@@ -68,6 +70,14 @@ const BookSingleTurf = ({
     const user = localStorage.getItem('user');
     const customerId = JSON.parse(user);
     console.log(user);
+    console.log(numberofmatches);
+
+    if (tournament_id !== '') {
+      if (selectedTimeSlots.length < Math.ceil(numberofmatches / 2)) {
+        alert('You need more slots to book the tournament');
+        return;
+      }
+    }
 
     try {
       const bookingData = {
@@ -89,6 +99,27 @@ const BookSingleTurf = ({
         fetchAvailableTimeSlots(selectedDate); // Refresh available timeslots
       } else {
         throw new Error('Booking failed');
+      }
+
+      if (tournament_id !== '') {
+        const matchData = {
+          tournament_id: tournament_id,
+          timeslots: selectedTimeSlots,
+          date: selectedDate.format('YYYY-MM-DD'),
+          matches: teams,
+        };
+        const response1 = await axios.post(
+          'http://localhost:3001/api/book-tournament',
+          matchData,
+        );
+
+        if (response1.status === 201) {
+          alert('Tournament booking successful');
+          setSelectedTimeSlots([]); // Reset selected timeslots after booking
+          fetchAvailableTimeSlots(selectedDate); // Refresh available timeslots
+        } else {
+          throw new Error('Tournament booking failed');
+        }
       }
     } catch (error) {
       console.error('Error during booking:', error);

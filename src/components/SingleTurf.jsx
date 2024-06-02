@@ -70,28 +70,29 @@
 
 // export default SingleTurf;
 
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import BookSingleTurf from "./BookSingleTurf";
-import Header from "./Header/Header";
-import ReviewForm from "./ReviewForm";
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import BookSingleTurf from './BookSingleTurf';
+import Header from './Header/Header';
+import ReviewForm from './ReviewForm';
 
 const SingleTurf = () => {
   const [turfData, setTurfData] = useState(null);
   const [reviews, setReviews] = useState([]);
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch(`http://localhost:3001/turf/${id}`);
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          throw new Error('Network response was not ok');
         }
         const data = await response.json();
         setTurfData(data);
       } catch (error) {
-        console.error("Error fetching turf data:", error);
+        console.error('Error fetching turf data:', error);
       }
     };
 
@@ -99,12 +100,12 @@ const SingleTurf = () => {
       try {
         const response = await fetch(`http://localhost:3001/api/reviews/${id}`);
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          throw new Error('Network response was not ok');
         }
         const reviews = await response.json();
         setReviews(reviews);
       } catch (error) {
-        console.error("Error fetching reviews:", error);
+        console.error('Error fetching reviews:', error);
       }
     };
 
@@ -117,6 +118,9 @@ const SingleTurf = () => {
   }
 
   const { name, imageURL, location, facilities, ratePerHour } = turfData;
+  const handleJoinTournament = () => {
+    navigate(`tournament`);
+  };
 
   return (
     <div>
@@ -130,6 +134,12 @@ const SingleTurf = () => {
           <p className="text-lg mb-2">Location: {location}</p>
           <p className="text-lg mb-2">Facilities: {facilities}</p>
           <p className="text-lg mb-2">Rate Per Hour: ${ratePerHour}</p>
+          <button
+            onClick={handleJoinTournament}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md mt-4"
+          >
+            Join Tournament
+          </button>
         </div>
         <BookSingleTurf turfId={id} />
       </div>
@@ -149,7 +159,7 @@ const SingleTurf = () => {
       </div>
       <div className="mt-8 px-4 lg:px-24">
         <h2 className="text-2xl font-bold mb-4">Reviews</h2>
-        {reviews.map((review) => (
+        {reviews.map(review => (
           <div key={review._id} className="mb-4">
             <p className="text-lg">
               <strong>{review.user_id.username}</strong>: {review.comment}

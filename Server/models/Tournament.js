@@ -6,8 +6,11 @@ const { Schema } = mongoose;
 
 
 const TournamentSchema = new mongoose.Schema({
-    turf_id: { type: Schema.Types.ObjectId, ref: 'turfs' },
+    turf_id: { type: Schema.Types.ObjectId, ref: 'Turf' },
     creator_id: { type: Schema.Types.ObjectId, ref: 'customers' },
+    matchnumber:Number,
+    is_booked: { type: Boolean, default: false }
+
   
 });
 

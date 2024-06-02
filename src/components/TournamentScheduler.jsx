@@ -1,11 +1,24 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
+import BookSingleTurf from './BookSingleTurf';
 import Header from './Header/Header';
 
 const TournamentScheduler = () => {
+  const { id, tournamentid } = useParams();
   const location = useLocation();
-  const { tournamentType, numTeams, teamNames, playDays } =
+  const { tournamentType, numTeams, teamNames, matchNumber } =
     location.state || {};
+
+  const [matches, setMatches] = useState([]);
+
+  useEffect(() => {
+    const generatedMatches =
+      tournamentType === 'knockout'
+        ? generateKnockoutSchedule()
+        : generateRoundRobinSchedule();
+
+    setMatches(generatedMatches);
+  }, [tournamentType, numTeams, teamNames]);
 
   if (!location.state) {
     return (
@@ -18,50 +31,144 @@ const TournamentScheduler = () => {
   }
 
   const generateKnockoutSchedule = () => {
-    const numMatches = numTeams / 2;
-    return Array.from({ length: numMatches }, (_, i) => (
-      <div
-        key={i}
-        className="flex items-center justify-between bg-gray-800 text-gray-300 border border-gray-600 rounded-md p-4 m-2"
-      >
-        <span>{teamNames[i * 2]}</span>
-        <div className="bg-gray-700 h-10 w-10 mx-2 rounded-md flex items-center justify-center text-white">
-          vs
-        </div>
-        <span>{teamNames[i * 2 + 1]}</span>
-      </div>
-    ));
+    const numMatches = Math.ceil(numTeams / 2);
+    const matchArray = [];
+
+    for (let i = 0; i < numMatches; i++) {
+      matchArray.push(`${teamNames[i * 2]} vs ${teamNames[i * 2 + 1]}`);
+    }
+
+    return matchArray;
   };
 
   const generateRoundRobinSchedule = () => {
-    const matches = [];
+    const matchArray = [];
+
     for (let i = 0; i < numTeams; i++) {
       for (let j = i + 1; j < numTeams; j++) {
-        matches.push(
-          <div
-            key={`${i}-${j}`}
-            className="flex items-center justify-between bg-gray-800 text-gray-300 border border-gray-600 rounded-md p-4 m-2"
-          >
-            <span>{teamNames[i]}</span>
-            <div className="bg-gray-700 h-10 w-10 mx-2 rounded-md flex items-center justify-center text-white">
-              vs
-            </div>
-            <span>{teamNames[j]}</span>
-          </div>,
-        );
+        matchArray.push(`${teamNames[i]} vs ${teamNames[j]}`);
       }
     }
-    return matches;
+
+    return matchArray;
+  };
+
+  const renderMatch = (match, i) => (
+    <div
+      key={i}
+      className="flex items-center justify-between bg-gray-800 text-gray-300 border border-gray-600 rounded-lg p-6 m-4 shadow-lg"
+    >
+      <span className="font-semibold text-xl">{match.split(' vs ')[0]}</span>
+      <div className="bg-gray-700 h-12 w-12 mx-4 rounded-full flex items-center justify-center text-white text-lg font-bold">
+        vs
+      </div>
+      <span className="font-semibold text-xl">{match.split(' vs ')[1]}</span>
+    </div>
+  );
+
+  const renderKnockoutMatches = () => {
+    return matches.map((match, i) => renderMatch(match, i));
+  };
+
+  const renderRoundRobinMatches = () => {
+    return matches.map((match, i) => renderMatch(match, i));
+  };
+
+  const renderGroupStageMatches = () => {
+    return (
+      <>
+        {renderRoundRobinMatches()}
+        <div className="mt-8">
+          <h3 className="text-2xl font-bold mb-4">Semifinals</h3>
+          <div className="flex flex-wrap">
+            <div className=" p-2">
+              {renderMatch('1st vs 4th', matches.length)}
+            </div>
+            <div className=" p-2">
+              {renderMatch('2nd vs 3rd', matches.length + 1)}
+            </div>
+          </div>
+          <div className="mt-8">
+            <h3 className="text-2xl font-bold mb-4">Finals</h3>
+            {renderMatch(
+              'Winner of Semifinal 1 vs Winner of Semifinal 2',
+              matches.length + 2,
+            )}
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  const renderKnockoutStages = () => {
+    if (numTeams === 4) {
+      return (
+        <div className="mt-8">
+          <h3 className="text-2xl font-bold mb-4">Finals</h3>
+          {renderMatch(
+            'Winner of Match 1 vs Winner of Match 2',
+            matches.length,
+          )}
+        </div>
+      );
+    } else if (numTeams === 8) {
+      return (
+        <div className="mt-8">
+          <h3 className="text-2xl font-bold mb-4">Semifinals</h3>
+          <div className="flex flex-wrap">
+            <div className=" p-2">
+              {renderMatch(
+                'Winner of Match 1 vs Winner of Match 2',
+                matches.length,
+              )}
+            </div>
+            <div className=" p-2">
+              {renderMatch(
+                'Winner of Match 3 vs Winner of Match 4',
+                matches.length + 1,
+              )}
+            </div>
+          </div>
+          <div className="mt-8">
+            <h3 className="text-2xl font-bold mb-4">Finals</h3>
+            {renderMatch(
+              'Winner of Semifinal 1 vs Winner of Semifinal 2',
+              matches.length + 2,
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
-    <div>
+    <div className="min-h-screen">
       <Header />
-      <div className="flex justify-center mt-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {tournamentType === 'knockout'
-            ? generateKnockoutSchedule()
-            : generateRoundRobinSchedule()}
+      <div className="container mx-auto flex mt-8">
+        <div className="w-3/4 p-4">
+          <h2 className="text-3xl font-bold mb-6">Tournament Schedule</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {tournamentType === 'knockout' ? (
+              <>
+                {renderKnockoutMatches()}
+                {renderKnockoutStages()}
+              </>
+            ) : (
+              renderGroupStageMatches()
+            )}
+          </div>
+        </div>
+        <div className="w-1/2 p-4">
+          <h2 className="text-3xl font-bold mb-6">Book Tournament</h2>
+          <p>You have to book {Math.ceil(matchNumber / 2)} slots</p>
+          <BookSingleTurf
+            turfId={id}
+            tournament_id={tournamentid}
+            numberofmatches={matchNumber}
+            teams={teamNames}
+          />
         </div>
       </div>
     </div>
