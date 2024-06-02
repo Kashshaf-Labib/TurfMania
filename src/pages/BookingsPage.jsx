@@ -91,7 +91,7 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="container mx-auto mt-8">
+    <div className="container mx-auto mt-8 p-10">
       <h1 className="text-4xl font-bold text-center mb-8">My Bookings</h1>
       {bookings.length === 0 ? (
         <p className="text-center text-xl">No bookings found.</p>

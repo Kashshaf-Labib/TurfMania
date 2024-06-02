@@ -8,19 +8,8 @@ const CustomerSchema = new mongoose.Schema({
   avatar:String,
   createdAt: {type:Date, default: Date.now()},
  
-  inventory:[{
-    
-      date: {
-        type: Date,
-        unique: true // Ensure each date is unique
-    },
-    time:{
-      type:String
-    },
-    turfs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'turfs' }],
-    
+ 
 
-  }]
 });
 
 const CustomerModel = mongoose.model("customers", CustomerSchema);

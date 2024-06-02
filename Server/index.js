@@ -7,7 +7,7 @@ const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require(`jsonwebtoken`);
 const TurfOnweModel = require("./models/admin");
-
+const ReviewModel = require("./models/review");
 const Timeslot = require("./models/timeslot");
 const dayjs = require("dayjs");
 const Booking = require("./models/booking");
@@ -26,16 +26,6 @@ mongoose
   .connect("mongodb://127.0.0.1:27017/turf")
   .then((d) => console.log("Connected to database"))
   .catch((err) => console.log(err));
-
-function calculateEndTime(startTime) {
-  const [hours, minutes] = startTime.split(":").map(Number);
-  const endTime = new Date();
-  endTime.setHours(hours + 1, minutes, 0); // Adding 1 hour to start time
-  return `${endTime.getHours()}:${endTime
-    .getMinutes()
-    .toString()
-    .padStart(2, "0")}`;
-}
 
 app.post("/signup", (req, res) => {
   CustomerModel.create(req.body)
@@ -350,6 +340,16 @@ app.get("/api/available-timeslots", async (req, res) => {
   }
 });
 
+function calculateEndTime(startTime) {
+  const [hours, minutes] = startTime.split(":").map(Number);
+  const endTime = new Date();
+  endTime.setHours(hours + 1, minutes, 0); // Adding 1 hour to start time
+  return `${endTime.getHours()}:${endTime
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}`;
+}
+
 app.post("/api/book-turf", async (req, res) => {
   try {
     const { turf_id, user_id, timeslots, date } = req.body;
@@ -415,21 +415,56 @@ app.post("/owner/auth/logout", (req, res) => {
     .json({ message: "Logged out successfully." });
 });
 
-app.get('/api/bookings/:userId', async (req, res) => {
+
+
+app.get("/api/bookings/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const bookings = await Booking.find({ user_id: userId }).populate('turf_id');
+    const bookings = await Booking.find({ user_id: userId }).populate(
+      "turf_id"
+    );
     if (!bookings) {
-      return res.status(404).json({ message: 'No bookings found' });
+      return res.status(404).json({ message: "No bookings found" });
     }
     res.status(200).json({ bookings });
   } catch (error) {
-    console.error('Error fetching bookings:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
+app.post("/api/reviews", async (req, res) => {
+  try {
+    const { user_id, turf_id, rating, comment } = req.body;
+    const newReview = new ReviewModel({ user_id, turf_id, rating, comment });
+    const savedReview = await newReview.save();
 
+    // Update the average rating of the turf
+    const reviews = await ReviewModel.find({ turf_id });
+    const averageRating =
+      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+
+    await TurfModel.findByIdAndUpdate(turf_id, { averageRating });
+
+    res.status(201).json(savedReview);
+  } catch (error) {
+    console.error("Error creating review:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Route to get reviews for a specific turf
+app.get("/api/reviews/:turf_id", async (req, res) => {
+  try {
+    const reviews = await ReviewModel.find({
+      turf_id: req.params.turf_id,
+    }).populate("user_id");
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 app.listen(3001, () => {
   console.log("Server is running on port 3001");

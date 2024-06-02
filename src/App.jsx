@@ -41,8 +41,6 @@ function App() {
             <Route
               path="/turf/:id"
               element={<SingleTurf />}
-              // Use `element` prop instead of wrapping the object with curly braces
-              // Define a `loader` function to fetch turf data
             />
             <Route path="/admin/dashboard/upload" element={<UploadTurfs />} />
             <Route path="/turf/tournament" element={<Tournament />} />
