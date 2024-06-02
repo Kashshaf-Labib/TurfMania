@@ -7,7 +7,7 @@ const { Schema } = mongoose;
 
   const MatchSchema = new Schema({
     tournament_id: Schema.Types.ObjectId,
-    timeslot_id: { type: Schema.Types.ObjectId, ref: 'Timeslot' },
+    timeslot_id: { type: Schema.Types.ObjectId, ref: 'timeslots' },
     start_time: String,
     end_time: String,
     date: Date,

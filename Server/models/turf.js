@@ -9,7 +9,7 @@ const TurfSchema = new mongoose.Schema({
     name: String,
     location: String,
     imageURL: String,
-    facilities: String,
+    facilities: [String],
     ratePerHour: Number,
   
 });

@@ -1,16 +1,16 @@
 import { useContext, useState } from "react";
 import { UserContext } from "../UserContext";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, Routes, Route, useLocation } from "react-router-dom";
 import axios from "axios";
+import BookingsPage from "./BookingsPage";
 
 export default function AccountPage() {
   const { ready, user, setUser } = useContext(UserContext);
   const [redirect, setRedirect] = useState(null);
-  let { subpage } = useParams();
+  const location = useLocation();
 
-  if (subpage === undefined) {
-    subpage = "profile";
-  }
+  // Extract subpage from the current location path
+  const subpage = location.pathname.split("/")[2] || "profile";
 
   if (!ready) {
     return "Loading...";
@@ -48,29 +48,35 @@ export default function AccountPage() {
   return (
     <div>
       <nav className="w-full flex justify-center mt-8 gap-20 text-2xl">
-        <Link className={linkClasses("profile")} to={"/account"}>
+        <Link className={linkClasses("profile")} to={"/account/profile"}>
           My Profile
         </Link>
         <Link className={linkClasses("bookings")} to={"/account/bookings"}>
           My Bookings
         </Link>
       </nav>
-      {subpage === "profile" && (
-        <div className="text-center max-w-lg mx-auto text-xl">
-          <p className="my-4">
-            Logged in as{" "}
-            <span className="text-red-600">
-              {user.username} ({user.email})
-            </span>
-          </p>
-          <button
-            onClick={logout}
-            className="bg-red-600 text-[1.1rem] font-normal text-white px-5 py-1.5 rounded"
-          >
-            Logout
-          </button>
-        </div>
-      )}
+      <Routes>
+        <Route
+          path="profile"
+          element={
+            <div className="text-center max-w-lg mx-auto text-xl">
+              <p className="my-4">
+                Logged in as{" "}
+                <span className="text-red-600">
+                  {user.username} ({user.email})
+                </span>
+              </p>
+              <button
+                onClick={logout}
+                className="bg-red-600 text-[1.1rem] font-normal text-white px-5 py-1.5 rounded"
+              >
+                Logout
+              </button>
+            </div>
+          }
+        />
+        <Route path="bookings" element={<BookingsPage />} />
+      </Routes>
     </div>
   );
 }

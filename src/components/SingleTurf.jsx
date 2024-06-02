@@ -7,7 +7,6 @@ const SingleTurf = () => {
   const [date, setDate] = useState('');
   const [turfData, setTurfData] = useState(null);
   const { id } = useParams();
-  // Replace with actual customer ID logic
 
   useEffect(() => {
     const fetchData = async () => {
