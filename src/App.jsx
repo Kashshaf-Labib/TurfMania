@@ -1,21 +1,20 @@
 //import { useState } from 'react'
-import axios from "axios";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { UserContextProvider } from "./UserContext";
-import UploadTurfs from "./components/Dashboard/UploadTurfs.jsx";
-import SingleTurf from "./components/SingleTurf.jsx";
-import Tournament from "./components/Tournament.jsx";
-import TournamentScheduler from "./components/TournamentScheduler.jsx";
-import About from "./pages/About.jsx";
-import AccountPage from "./pages/AccountPage.jsx";
-import AdminLogin from "./pages/AdminLogin.jsx";
-import AdminRegister from "./pages/AdminRegister.jsx";
-import Contact from "./pages/Contact.jsx";
-import ExploreTurfs from "./pages/ExploreTurfs.jsx";
-import Home from "./pages/Home.jsx";
-import Login from "./pages/Login.jsx";
-import Signup from "./pages/Signup.jsx";
-import BookingsPage from "./pages/BookingsPage.jsx";
+import axios from 'axios';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { UserContextProvider } from './UserContext';
+import UploadTurfs from './components/Dashboard/UploadTurfs.jsx';
+import SingleTurf from './components/SingleTurf.jsx';
+import Tournament from './components/Tournament.jsx';
+import TournamentScheduler from './components/TournamentScheduler.jsx';
+import About from './pages/About.jsx';
+import AccountPage from './pages/AccountPage.jsx';
+import AdminLogin from './pages/AdminLogin.jsx';
+import AdminRegister from './pages/AdminRegister.jsx';
+import Contact from './pages/Contact.jsx';
+import ExploreTurfs from './pages/ExploreTurfs.jsx';
+import Home from './pages/Home.jsx';
+import Login from './pages/Login.jsx';
+import Signup from './pages/Signup.jsx';
 
 // Configure Axios to send and receive cookies
 axios.defaults.withCredentials = true;
@@ -38,14 +37,11 @@ function App() {
             {/* <Route path="/account/:subpage?" element={<AccountPage />} /> */}
             <Route path="/account/*" element={<AccountPage />} />
 
-            <Route
-              path="/turf/:id"
-              element={<SingleTurf />}
-            />
+            <Route path="/turf/:id" element={<SingleTurf />} />
             <Route path="/admin/dashboard/upload" element={<UploadTurfs />} />
-            <Route path="/turf/tournament" element={<Tournament />} />
+            <Route path="/turf/:id/tournament/" element={<Tournament />} />
             <Route
-              path="/turf/tournamentSchedular"
+              path="/turf/:id/tournament/TournamentSchedular/:tournamentid"
               element={<TournamentScheduler />}
             />
           </Routes>
