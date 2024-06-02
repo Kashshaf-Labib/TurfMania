@@ -201,20 +201,19 @@ const UploadTurfs = () => {
     const imageURL = formData.get("imageURL");
     const facilities = formData.get("facilities");
     const ratePerHour = formData.get("ratePerHour");
-    const latitude = formData.get("latitude");
-    const longitude = formData.get("longitude");
     const googleMapLink = formData.get("googleMapLink");
+    const user=localStorage.getItem("user");
+    const turfOwnerId = JSON.parse(user);
 
     // Create turf object with form data
     const turfObject = {
+      turfOwnerId,
       name,
       location,
       imageURL,
       facilities,
       ratePerHour,
-      latitude,
-      longitude,
-      googleMapLink,
+     
     };
 
     try {
