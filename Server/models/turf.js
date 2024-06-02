@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const TurfSchema = new mongoose.Schema({
+  turfOwnerId: { type: Schema.Types.ObjectId, ref: "turfOwners" },
   name: String,
   location: String,
   imageURL: String,

@@ -11,8 +11,9 @@ const ReviewModel = require("./models/review");
 const Timeslot = require("./models/timeslot");
 const dayjs = require("dayjs");
 const Booking = require("./models/booking");
-const TournamentModel =require("./models/Tournament");
-const MatchModel=require('./models/matches')
+const TournamentModel = require("./models/Tournament");
+const MatchModel = require("./models/matches");
+const TurfOwnerModel = require("./models/admin");
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -22,6 +23,8 @@ app.use(
     credentials: true,
   })
 );
+
+const JWT_SECRET_KEY = "12345jwtsecretkey";
 
 mongoose
   .connect("mongodb://127.0.0.1:27017/turf")
@@ -278,7 +281,7 @@ app.post("/owner/auth/login", async (req, res) => {
 });
 
 app.post("/owner/auth/register", async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password,nationalId } = req.body;
 
   try {
     // Hash the password
@@ -289,6 +292,7 @@ app.post("/owner/auth/register", async (req, res) => {
       username: username,
       email: email,
       password: hashedPassword,
+      nationalId: nationalId,
     });
 
     // Save the new user to the database
@@ -408,13 +412,13 @@ app.post("/api/book-turf", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-app.post('/api/book-tournament', async (req, res) => {
+app.post("/api/book-tournament", async (req, res) => {
   try {
     const { tournament_id, timeslots, date, matches } = req.body;
 
     // Check for missing required fields
     if (!tournament_id || !timeslots || !date || !matches) {
-      return res.status(400).json({ message: 'Missing required fields' });
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
     const startTimes = [];
@@ -423,7 +427,9 @@ app.post('/api/book-tournament', async (req, res) => {
         startTimes.push(start_time);
 
         // Assuming end_time is one hour after start_time, adjust as needed
-        const end_time = dayjs(start_time, 'HH:mm').add(1, 'hour').format('HH:mm');
+        const end_time = dayjs(start_time, "HH:mm")
+          .add(1, "hour")
+          .format("HH:mm");
 
         const match = new MatchModel({
           tournament_id,
@@ -440,25 +446,24 @@ app.post('/api/book-tournament', async (req, res) => {
           { _id: tournament_id },
           {
             $set: {
-              'matches.$[elem].is_booked': true,
+              "matches.$[elem].is_booked": true,
             },
           }
-          
         );
 
         return result;
       })
     );
 
-    res.status(201).json({ message: 'Booking successful', bookingResults });
+    res.status(201).json({ message: "Booking successful", bookingResults });
   } catch (error) {
-    console.error('Error booking tournament:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error booking tournament:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
-app.post('/tournaments', async (req, res) => {
+app.post("/tournaments", async (req, res) => {
   const { turf_id, creator_id, matchnumber } = req.body;
-  console.log('Request body:', req.body); // Debugging line
+  console.log("Request body:", req.body); // Debugging line
 
   try {
     const newTournament = new TournamentModel({
@@ -470,8 +475,8 @@ app.post('/tournaments', async (req, res) => {
     const savedTournament = await newTournament.save();
     res.status(201).json(savedTournament);
   } catch (error) {
-    console.error('Error creating tournament:', error);
-    res.status(500).json({ error: 'Failed to create tournament' });
+    console.error("Error creating tournament:", error);
+    res.status(500).json({ error: "Failed to create tournament" });
   }
 });
 
@@ -481,8 +486,6 @@ app.post("/owner/auth/logout", (req, res) => {
     .status(200)
     .json({ message: "Logged out successfully." });
 });
-
-
 
 app.get("/api/bookings/:userId", async (req, res) => {
   try {
@@ -529,6 +532,91 @@ app.get("/api/reviews/:turf_id", async (req, res) => {
     res.status(200).json(reviews);
   } catch (error) {
     console.error("Error fetching reviews:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+//System Admin Login Route
+
+app.post("/systemadminlogin", async (req, res) => {
+  const { username, password } = req.body;
+
+  // Hardcoded admin credentials
+  const hardcodedUsername = "Admin";
+  const hardcodedPassword = "Admin";
+
+  try {
+    // Check if the username and password match the hardcoded values
+    if (username !== hardcodedUsername || password !== hardcodedPassword) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    // Set a cookie
+    const age = 1000 * 60 * 60 * 24 * 7;
+    const token = jwt.sign({ username }, JWT_SECRET_KEY, { expiresIn: age });
+
+    res
+      .cookie("Token", token, {
+        httpOnly: true,
+        maxAge: age,
+      })
+      .status(200)
+      .json({ username, token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to login" });
+  }
+});
+
+// Route to fetch all turf owners
+app.get("/turfowners/all", async (req, res) => {
+  try {
+    const turfOwners = await TurfOwnerModel.find();
+    res.status(200).json(turfOwners);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching turf owners" });
+  }
+});
+
+// Route to update freeze status of a turf owner
+app.patch("/turfowners/:id", async (req, res) => {
+  const { id } = req.params;
+  const { isFreezed } = req.body;
+  try {
+    const updatedOwner = await TurfOwnerModel.findByIdAndUpdate(
+      id,
+      { isFreezed },
+      { new: true }
+    );
+    res.status(200).json(updatedOwner);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating freeze status" });
+  }
+});
+
+// Route to fetch all turfs
+app.get("/turfs", async (req, res) => {
+  try {
+    const turfs = await TurfModel.find();
+    res.status(200).json(turfs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching turfs" });
+  }
+});
+
+app.post("/turfowners/status", async (req, res) => {
+  try {
+    const { turfOwnerId } = req.body;
+    const turfOwner = await TurfOwnerModel.findById(turfOwnerId);
+    if (!turfOwner) {
+      return res.status(404).json({ message: "Turf owner not found" });
+    }
+    res.status(200).json({ isFreezed: turfOwner.isFreezed });
+  } catch (error) {
+    console.error("Error fetching turf owner status:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });

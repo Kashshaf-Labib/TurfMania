@@ -1,22 +1,24 @@
-import axios from 'axios';
-import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import axios from "axios";
+import dayjs from "dayjs";
+import React, { useEffect, useState } from "react";
 
 const BookSingleTurf = ({
   month = dayjs().month(),
   year = dayjs().year(),
   turfId,
-  tournament_id = '',
+  tournament_id = "",
+  ratePerHour,
   teams,
+  matches,
   numberofmatches,
 }) => {
-  const firstDayOfMonth = dayjs().year(year).month(month).startOf('month');
-  const lastDayOfMonth = dayjs().year(year).month(month).endOf('month');
+  const firstDayOfMonth = dayjs().year(year).month(month).startOf("month");
+  const lastDayOfMonth = dayjs().year(year).month(month).endOf("month");
   const [selectedDate, setSelectedDate] = useState(null);
   const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
   const arrayOfDates = [];
-  const days = ['Su', 'M', 'Tu', 'W', 'Th', 'Fr', 'Sa'];
+  const days = ["Su", "M", "Tu", "W", "Th", "Fr", "Sa"];
 
   useEffect(() => {
     if (selectedDate) {
@@ -33,48 +35,52 @@ const BookSingleTurf = ({
     arrayOfDates.push(date);
   }
 
-  const fetchAvailableTimeSlots = async date => {
+  const fetchAvailableTimeSlots = async (date) => {
     try {
-      console.log(turfId, date.format('YYYY-MM-DD'));
+      console.log(turfId, date.format("YYYY-MM-DD"));
       const response = await axios.get(
         `http://localhost:3001/api/available-timeslots?turfId=${turfId}&date=${date.format(
-          'YYYY-MM-DD',
-        )}`,
+          "YYYY-MM-DD"
+        )}`
       );
 
-      console.log('Available time slots response:', response.data);
+      console.log("Available time slots response:", response.data);
       setAvailableTimeSlots(response.data);
     } catch (error) {
-      console.error('Error fetching time slots:', error);
+      console.error("Error fetching time slots:", error);
       setAvailableTimeSlots([]); // Ensure it is an empty array in case of error
     }
   };
 
-  const handleDateClick = date => {
-    setSelectedDate(date);
-    setSelectedTimeSlots([]); // Reset selected time slots when date changes
+  const handleDateClick = (date) => {
+    if (date.isBefore(dayjs(), "day")) {
+      setAvailableTimeSlots([]); // Set to empty array for past dates
+      setSelectedDate(date);
+      setSelectedTimeSlots([]); // Reset selected time slots when date changes
+    } else {
+      setSelectedDate(date);
+      setSelectedTimeSlots([]); // Reset selected time slots when date changes
+    }
   };
 
-  const handleTimeSlotClick = start_time => {
+  const handleTimeSlotClick = (start_time) => {
     const isSelected = selectedTimeSlots.includes(start_time);
     if (isSelected) {
       setSelectedTimeSlots(
-        selectedTimeSlots.filter(slot => slot !== start_time),
+        selectedTimeSlots.filter((slot) => slot !== start_time)
       ); // Remove if already selected
     } else {
       setSelectedTimeSlots([...selectedTimeSlots, start_time]); // Add if not selected
     }
-    console.log(selectedTimeSlots);
   };
-  const handleBookNow = async () => {
-    const user = localStorage.getItem('user');
-    const customerId = JSON.parse(user);
-    console.log(user);
-    console.log(numberofmatches);
 
-    if (tournament_id !== '') {
+  const handleBookNow = async () => {
+    const user = localStorage.getItem("user");
+    const customerId = JSON.parse(user);
+
+    if (tournament_id !== "") {
       if (selectedTimeSlots.length < Math.ceil(numberofmatches / 2)) {
-        alert('You need more slots to book the tournament');
+        alert("You need more slots to book the tournament");
         return;
       }
     }
@@ -84,46 +90,46 @@ const BookSingleTurf = ({
         turf_id: turfId,
         user_id: customerId,
         timeslots: selectedTimeSlots,
-        date: selectedDate.format('YYYY-MM-DD'),
+        date: selectedDate.format("YYYY-MM-DD"),
       };
-      console.log(bookingData);
 
       const response = await axios.post(
-        'http://localhost:3001/api/book-turf',
-        bookingData,
+        "http://localhost:3001/api/book-turf",
+        bookingData
       );
 
       if (response.status === 201) {
-        alert('Booking successful');
+        alert("Booking successful");
         setSelectedTimeSlots([]); // Reset selected timeslots after booking
         fetchAvailableTimeSlots(selectedDate); // Refresh available timeslots
       } else {
-        throw new Error('Booking failed');
+        throw new Error("Booking failed");
       }
 
-      if (tournament_id !== '') {
+      if (tournament_id !== "") {
         const matchData = {
           tournament_id: tournament_id,
           timeslots: selectedTimeSlots,
-          date: selectedDate.format('YYYY-MM-DD'),
-          matches: teams,
+          date: selectedDate.format("YYYY-MM-DD"),
+          matches: matches,
         };
+
         const response1 = await axios.post(
-          'http://localhost:3001/api/book-tournament',
-          matchData,
+          "http://localhost:3001/api/book-tournament",
+          matchData
         );
 
         if (response1.status === 201) {
-          alert('Tournament booking successful');
+          alert("Tournament booking successful");
           setSelectedTimeSlots([]); // Reset selected timeslots after booking
           fetchAvailableTimeSlots(selectedDate); // Refresh available timeslots
         } else {
-          throw new Error('Tournament booking failed');
+          throw new Error("Tournament booking failed");
         }
       }
     } catch (error) {
-      console.error('Error during booking:', error);
-      alert('Error during booking. Please try again.');
+      console.error("Error during booking:", error);
+      alert("Error during booking. Please try again.");
     }
   };
 
@@ -131,7 +137,7 @@ const BookSingleTurf = ({
     <div className="w-full max-w-md mx-auto mt-8 p-4 bg-white rounded shadow-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">
-          {dayjs().month(month).format('MMMM')} {year}
+          {dayjs().month(month).format("MMMM")} {year}
         </h2>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center mb-2">
@@ -147,32 +153,34 @@ const BookSingleTurf = ({
             <div
               key={index}
               className={`text-center p-2 rounded cursor-pointer ${
-                date.isSame(selectedDate, 'day')
-                  ? 'bg-blue-600 text-white'
-                  : 'hover:bg-gray-200'
+                date.isSame(selectedDate, "day")
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-gray-200"
               }`}
               onClick={() => handleDateClick(date)}
             >
-              {date.format('DD')}
+              {date.format("DD")}
             </div>
           ) : (
             <div key={index} className="text-center p-2"></div>
-          ),
+          )
         )}
       </div>
       {selectedDate && (
         <div className="mt-4">
           <h3 className="text-lg font-semibold mb-2">Select Time Slot:</h3>
           <div className="flex flex-wrap gap-2">
-            {Array.isArray(availableTimeSlots) &&
-            availableTimeSlots.length > 0 ? (
+            {selectedDate.isBefore(dayjs(), "day") ? (
+              <p>No available time slots for past dates.</p>
+            ) : Array.isArray(availableTimeSlots) &&
+              availableTimeSlots.length > 0 ? (
               availableTimeSlots.map((slot, index) => (
                 <button
                   key={index}
                   className={`px-4 py-2 rounded border ${
                     selectedTimeSlots.includes(slot.start_time)
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-gray-200'
+                      ? "bg-blue-600 text-white"
+                      : "hover:bg-gray-200"
                   }`}
                   onClick={() => handleTimeSlotClick(slot.start_time)}
                 >
@@ -182,16 +190,17 @@ const BookSingleTurf = ({
             ) : (
               <p>No available time slots for the selected date.</p>
             )}
-            <div className="flex justify-center mt-4">
-              <button
-                className="bg-blue-600 text-white px-4 py-2 rounded"
-                onClick={handleBookNow}
-                disabled={selectedTimeSlots.length === 0} // Disable button if no timeslots selected
-              >
-                Book Now
-              </button>
-            </div>
           </div>
+          <div className="flex justify-center mt-4">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={handleBookNow}
+              disabled={selectedTimeSlots.length === 0} // Disable button if no timeslots selected
+            >
+              Book Now
+            </button>
+          </div>
+          <div>Total cost {ratePerHour * selectedTimeSlots.length}</div>
         </div>
       )}
     </div>
