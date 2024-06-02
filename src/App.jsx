@@ -16,6 +16,7 @@ import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import SystemAdminLoginPage from "./pages/SystemAdminLogin.jsx";
 import SystemAdminDashboard from "./pages/SystemAdminDashboard.jsx";
+import ManageTurfs from './components/Dashboard/ManageTurfs.jsx';
 
 // Configure Axios to send and receive cookies
 axios.defaults.withCredentials = true;
@@ -39,6 +40,7 @@ function App() {
             <Route path="/turf/:id" element={<SingleTurf />} />
             <Route path="/admin/dashboard/upload" element={<UploadTurfs />} />
             <Route path="/turf/:id/tournament/" element={<Tournament />} />
+            <Route path="/admin/dashboard/manage" element={<ManageTurfs />} />
             <Route
               path="/systemadminlogin"
               element={<SystemAdminLoginPage />}

@@ -281,7 +281,7 @@ app.post("/owner/auth/login", async (req, res) => {
 });
 
 app.post("/owner/auth/register", async (req, res) => {
-  const { username, email, password,nationalId } = req.body;
+  const { username, email, password, nationalId } = req.body;
 
   try {
     // Hash the password
@@ -617,6 +617,32 @@ app.post("/turfowners/status", async (req, res) => {
     res.status(200).json({ isFreezed: turfOwner.isFreezed });
   } catch (error) {
     console.error("Error fetching turf owner status:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.post("/manageturfs", async (req, res) => {
+  const { turfOwnerId } = req.body;
+  try {
+    const turfs = await TurfModel.find({ turfOwnerId });
+    res.status(200).json(turfs);
+  } catch (err) {
+    console.error("Error fetching turfs", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.put("/manageturfs/:turfId", async (req, res) => {
+  const { turfId } = req.params;
+  const updatedTurf = req.body;
+
+  try {
+    const result = await TurfModel.findByIdAndUpdate(turfId, updatedTurf, {
+      new: true,
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error updating turf:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
