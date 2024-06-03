@@ -6,7 +6,7 @@ import Header from './Header/Header';
 const TournamentScheduler = () => {
   const { id, tournamentid } = useParams();
   const location = useLocation();
-  const { tournamentType, numTeams, teamNames, matchNumber } =
+  const { tournamentType, numTeams, teamNames, matchNumber, ratePerHour } =
     location.state || {};
 
   const [matches, setMatches] = useState([]);
@@ -29,6 +29,14 @@ const TournamentScheduler = () => {
       </div>
     );
   }
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+  shuffleArray(teamNames);
 
   const generateKnockoutSchedule = () => {
     const numMatches = Math.ceil(numTeams / 2);
@@ -168,6 +176,8 @@ const TournamentScheduler = () => {
             tournament_id={tournamentid}
             numberofmatches={matchNumber}
             teams={teamNames}
+            matches={matches}
+            ratePerHour={ratePerHour}
           />
         </div>
       </div>

@@ -412,53 +412,36 @@ app.post("/api/book-turf", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-app.post("/api/book-tournament", async (req, res) => {
+app.post('/api/book-tournament', async (req, res) => {
   try {
-    const { tournament_id, timeslots, date, matches } = req.body;
-
+    const { tournament_id, timeSlot, date, matches } = req.body;
+console.log(timeSlot);
     // Check for missing required fields
-    if (!tournament_id || !timeslots || !date || !matches) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!tournament_id || !timeSlot || !date || !matches) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const startTimes = [];
-    const bookingResults = await Promise.all(
-      timeslots.map(async (start_time) => {
-        startTimes.push(start_time);
+    // Create a new match document with an array of timeslots
+    const match = new MatchModel({
+      tournament_id,
+      timeSlot,
+      date: new Date(date),
+      matches,
+    });
 
-        // Assuming end_time is one hour after start_time, adjust as needed
-        const end_time = dayjs(start_time, "HH:mm")
-          .add(1, "hour")
-          .format("HH:mm");
+    await match.save();
+   
 
-        const match = new MatchModel({
-          tournament_id,
-          start_time,
-          end_time,
-          date: new Date(date),
-          matches,
-        });
-
-        await match.save();
-
-        // Update the tournament model to set the is_booked flag
-        const result = await TournamentModel.updateOne(
-          { _id: tournament_id },
-          {
-            $set: {
-              "matches.$[elem].is_booked": true,
-            },
-          }
-        );
-
-        return result;
-      })
+    // Update the tournament model to set the is_booked flag
+    const tournamentUpdateResult = await TournamentModel.updateOne(
+      { _id: tournament_id },
+      { $set: { is_booked: true } }
     );
 
-    res.status(201).json({ message: "Booking successful", bookingResults });
+    res.status(201).json({ message: 'Booking successful', match, tournamentUpdateResult });
   } catch (error) {
-    console.error("Error booking tournament:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('Error booking tournament:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 app.post("/tournaments", async (req, res) => {

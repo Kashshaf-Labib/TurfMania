@@ -7,11 +7,10 @@ const { Schema } = mongoose;
 
   const MatchSchema = new Schema({
     tournament_id: Schema.Types.ObjectId,
-    timeslot_id: { type: Schema.Types.ObjectId, ref: 'Timeslot' },
-    start_time: String,
-    end_time: String,
+   timeSlot:[String],
+  
     date: Date,
-    matches:String,
+    matches:[String],
    
     result: { type: String, default: 'Not played yet' }
   });
