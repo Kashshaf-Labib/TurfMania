@@ -119,7 +119,12 @@ const SingleTurf = () => {
 
   const { name, imageURL, location, facilities, ratePerHour } = turfData;
   const handleJoinTournament = () => {
-    navigate(`tournament`);
+    navigate(`tournament`),
+      {
+        state: {
+          ratePerHour,
+        },
+      };
   };
 
   return (

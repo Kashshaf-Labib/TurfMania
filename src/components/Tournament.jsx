@@ -1,10 +1,12 @@
 import { Button, Label, Select, TextInput } from 'flowbite-react';
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import Header from './Header/Header';
 
 const user = localStorage.getItem('user');
 const customerId = JSON.parse(user);
+const location = useLocation;
+const { ratePerHour } = location.state || {};
 
 const TeamForm = ({ index, onChange }) => (
   <div className="mb-6">
@@ -115,6 +117,7 @@ const Tournament = () => {
           numTeams,
           teamNames,
           playDays,
+          ratePerHour,
         },
       });
     } catch (error) {
